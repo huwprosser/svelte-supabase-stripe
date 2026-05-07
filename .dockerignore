@@ -1,0 +1,11 @@
+.git
+.DS_Store
+.env
+**/.env
+**/.venv
+**/__pycache__
+**/*.pyc
+client/node_modules
+client/dist
+server/static
+.pytest_cache

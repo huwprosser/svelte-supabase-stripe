@@ -1,0 +1,12 @@
+__pycache__
+*.pyc
+.env
+.venv
+node_modules
+dist
+server/static
+.vscode
+.claude
+.pi
+.codex
+.DS_Store

@@ -1,0 +1,19 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:-}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+        VITE_GA_ID: ${VITE_GA_ID:-}
+    ports:
+      - "8000:8000"
+    environment:
+      FRONTEND_URL: http://localhost:8000
+      MONGODB_URI: ${MONGODB_URI}
+      MONGODB_DB: ${MONGODB_DB:-starter}
+      SUPABASE_URL: ${SUPABASE_URL:-${VITE_SUPABASE_URL:-}}
+      SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
