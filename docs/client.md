@@ -6,7 +6,9 @@ It is built as a static SPA and served either by Vite in development or FastAPI 
 
 ## Key files
 
-- `client/src/routes/+page.svelte` - main UI, auth flow, settings, plans, checkout
+- `client/src/routes/+page.svelte` - homepage, with welcome copy after login
+- `client/src/routes/settings/+page.svelte` - account, privacy preferences, plans, and checkout
+- `client/src/components/StarterPage.svelte` - shared page UI and auth lifecycle
 - `client/src/routes/+layout.svelte` - app update prompt
 - `client/src/routes/+layout.ts` - disables SSR and enables prerendering
 - `client/src/api.ts` - typed API helper
@@ -18,13 +20,15 @@ It is built as a static SPA and served either by Vite in development or FastAPI 
 
 On load, the page:
 
-1. Fetches plans from `GET /plans`.
+1. Fetches plans from `GET /plans` on the Settings page.
 2. Reads the current Supabase session.
-3. If logged in, fetches `/me`.
+3. If logged in on `/settings`, fetches `/me`.
 4. Subscribes to Supabase auth changes.
 5. Loads Google Analytics only if cookie consent is accepted.
 6. Allows the user to enable/disable product activity tracking in Settings.
-7. Allows the user to download profile data or delete their account from Privacy & GDPR.
+7. Allows the user to download profile data or delete their account from Privacy & GDPR on `/settings`.
+
+The homepage keeps its title and layout after login, replacing the signup form with welcome copy and a Settings navigation link. Account details and controls appear only on `/settings`. Opening `/settings` while logged out shows the OTP login form; signing in reveals settings.
 
 ## API calls
 
