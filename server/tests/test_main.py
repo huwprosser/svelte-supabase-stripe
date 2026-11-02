@@ -84,6 +84,7 @@ def users(monkeypatch):
 def stripe_events(monkeypatch):
     fake = FakeUsers()
     monkeypatch.setattr(payments, "stripe_events", fake)
+    monkeypatch.setattr(user, "stripe_events", fake)
     return fake
 
 
@@ -91,6 +92,7 @@ def stripe_events(monkeypatch):
 def telemetry_actions(monkeypatch):
     fake = FakeUsers()
     monkeypatch.setattr(telemetry, "telemetry_actions", fake)
+    monkeypatch.setattr(user, "telemetry_actions", fake)
     return fake
 
 

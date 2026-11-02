@@ -5,7 +5,9 @@
     import { api } from "../api";
     import CookieConsent from "../components/CookieConsent.svelte";
 
-    let { settings = false }: { settings?: boolean } = $props();
+    import AuthForm from "./AuthForm.svelte";
+
+    let { settings = false, resetPassword = false }: { settings?: boolean; resetPassword?: boolean } = $props();
 
     type Tier = "free" | "plus" | "pro";
     type Interval = "month" | "year";
@@ -31,9 +33,6 @@
 
     let ready = $state(false);
     let session = $state<Session | null>(null);
-    let email = $state("");
-    let otpCode = $state("");
-    let otpSent = $state(false);
     let message = $state("");
     let profile = $state<Profile | null>(null);
     let plans = $state<Plan[]>([]);
@@ -100,26 +99,6 @@
     function setCookies(choice: CookieChoice) {
         cookieChoice = choice;
         if (choice === "yes") loadAnalytics();
-    }
-
-    async function sendOtp() {
-        message = "Sending OTP code...";
-        const { error } = await supabase.auth.signInWithOtp({
-            email,
-            options: { shouldCreateUser: true },
-        });
-        otpSent = !error;
-        message = error ? error.message : "Check your email for the OTP code.";
-    }
-
-    async function verifyOtp() {
-        message = "Verifying OTP code...";
-        const { error } = await supabase.auth.verifyOtp({
-            email,
-            token: otpCode,
-            type: "email",
-        });
-        message = error ? error.message : "Logged in.";
     }
 
     async function logout() {
@@ -203,7 +182,7 @@
 
     async function deleteAccount() {
         const confirmed = confirm(
-            "Delete your account? This removes your profile and Supabase login. This cannot be undone.",
+            "Delete your account? This removes your profile and login. This cannot be undone. Cancel any Apple or Google subscription in store settings first; account deletion does not cancel store billing.",
         );
         if (!confirmed) return;
 
@@ -239,45 +218,28 @@
 
 <main>
     <nav aria-label="Main navigation">
-        <a href="/" aria-current={!settings ? "page" : undefined}>Home</a>
+        <a href="/" aria-current={!settings && !resetPassword ? "page" : undefined}>Home</a>
         {#if session}
             <a href="/settings" aria-current={settings ? "page" : undefined}>Settings</a>
         {/if}
     </nav>
-    <h1>{settings ? "Settings" : "Supabase + MongoDB + Stripe Starter"}</h1>
+    <h1>{resetPassword ? "Reset password" : settings ? "Settings" : "Supabase + MongoDB + Stripe Starter"}</h1>
     <p>
-        {#if settings}
+        {#if resetPassword}
+            Choose a new password for your account.
+        {:else if settings}
             Manage your account, subscription, and privacy preferences.
         {:else if session}
             Welcome back. Manage your account and subscription in Settings.
         {:else}
-            OTP signup/login, free tier by default, and Stripe upgrades to Plus or Pro.
+            Email/password signup and login, free tier by default, and Stripe upgrades to Plus or Pro.
         {/if}
     </p>
 
     {#if !ready}
         <p role="status">Loading...</p>
-    {:else if !session}
-        <section>
-            <h2>Signup / Login</h2>
-            <input
-                bind:value={email}
-                type="email"
-                placeholder="you@example.com"
-            />
-            <button onclick={sendOtp}
-                >{otpSent ? "Resend OTP code" : "Send OTP code"}</button
-            >
-
-            {#if otpSent}
-                <input
-                    bind:value={otpCode}
-                    inputmode="numeric"
-                    placeholder="123456"
-                />
-                <button onclick={verifyOtp}>Verify OTP</button>
-            {/if}
-        </section>
+    {:else if resetPassword || !session}
+        <AuthForm {resetPassword} signedIn={!!session} {settings} />
     {:else if settings}
         <section>
             <h2>Account</h2>
@@ -365,11 +327,6 @@
         padding: 16px;
         margin: 16px 0;
         border-radius: 8px;
-    }
-    input {
-        padding: 10px;
-        min-width: 260px;
-        margin-right: 8px;
     }
     button {
         padding: 10px 12px;

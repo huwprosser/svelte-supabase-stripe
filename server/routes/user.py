@@ -9,6 +9,7 @@ from fastapi.responses import Response
 from auth import user_from_authorization_header
 from config import SUPABASE_SECRET_KEY, SUPABASE_URL
 from database import stripe_events, telemetry_actions, users
+from revenuecat import delete_customer, effective_subscription
 from schemas import AuthUser, UserPreferencesUpdate, UserProfile
 
 router = APIRouter()
@@ -33,10 +34,11 @@ def current_user(authorization: str | None) -> AuthUser:
 
 def profile_for(user: AuthUser) -> UserProfile:
     doc = users.find_one({"_id": user.id}) or {}
+    tier, interval = effective_subscription(doc)
     return UserProfile(
         email=user.email,
-        tier=doc.get("tier", "free"),
-        interval=doc.get("interval"),
+        tier=tier,
+        interval=interval,
         tracking_enabled=doc.get("tracking_enabled", False),
     )
 
@@ -94,12 +96,15 @@ def me(authorization: str | None = Header(default=None)):
 def export_me(authorization: str | None = Header(default=None)):
     user = current_user(authorization)
     doc = users.find_one({"_id": user.id}) or {}
+    tier, interval = effective_subscription(doc)
     export = {
         "email": doc.get("email", user.email),
-        "tier": doc.get("tier", "free"),
-        "interval": doc.get("interval"),
+        "tier": tier,
+        "interval": interval,
         "tracking_enabled": doc.get("tracking_enabled", False),
     }
+    if doc.get("revenuecat"):
+        export["mobile_subscription"] = doc["revenuecat"]
     payload = json.dumps(export, default=str, indent=2)
     return Response(
         content=payload,
@@ -126,6 +131,7 @@ def update_preferences(
 @router.delete("/me")
 def delete_me(authorization: str | None = Header(default=None)):
     user = current_user(authorization)
+    delete_customer(user.id)
     delete_supabase_user(user.id)
     delete_user_related_data(user.id)
     users.delete_one({"_id": user.id})
