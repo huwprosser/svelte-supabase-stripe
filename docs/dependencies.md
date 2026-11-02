@@ -52,7 +52,8 @@ The Expo tree still requires older major versions of these tools. No automatic f
 
 - Web: `npm test` passes 8 simulated auth scenarios (login, error/retry, signup validation, confirmation-required signup, immediate-session signup, reset email, password update, expired-session state, and duplicate-submit handling are covered across those checks).
 - Web: `npm run check` has zero errors/warnings, and `npm run build` succeeds with all three routes.
-- Backend: `uv run pytest -q` passes 10 tests, covering existing account/payment/privacy behavior plus mobile entitlement expiration, shared profiles, webhook authentication/transfers/retries, ignored deleted users and RevenueCat deletion.
+- Web onboarding/credits: 5 additional DOM scenarios cover submission, rejected age, server balances, quota errors and next-day retry.
+- Backend: `uv run pytest -q` passes 20 tests, covering existing account/payment/privacy behavior plus onboarding/age validation, configurable atomic daily credit limits, mobile entitlement expiration, shared profiles, webhook authentication/transfers/retries, ignored deleted users and RevenueCat deletion.
 - Python: `uv lock --check` and `pip-audit` pass.
 - Mobile: `npm test` verifies RevenueCat identification, serialized account switches, logout and retry after a failed identity change using a mock SDK.
 - Mobile: TypeScript and ESLint pass, `expo install --check` reports compatible dependencies, and Expo Doctor passes 20/20 checks.

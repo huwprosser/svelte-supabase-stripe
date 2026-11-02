@@ -4,6 +4,9 @@ export type Profile = {
   tier: "free" | "plus" | "pro";
   interval: "month" | "year" | null;
   tracking_enabled: boolean;
+  onboarding_complete: boolean;
+  date_of_birth: string | null;
+  discovery_source: string | null;
 };
 export async function api<T>(
   path: string,

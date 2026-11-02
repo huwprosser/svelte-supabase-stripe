@@ -47,3 +47,7 @@ Deleting an account does **not** cancel an App Store/Play subscription. Cancel t
 - `npx expo export --platform ios --platform android` (JavaScript bundle checks only)
 
 StoreKit/Play sandbox transactions, native deep links and OS share sheets still need device testing with real project configuration. Native signed binaries require an EAS account or the platform toolchain.
+
+## Onboarding and credits
+
+All authenticated tabs require shared onboarding: date of birth (age 14+) and where the user found the service. Export/deletion and logout remain available during onboarding. Home includes a one-credit button with a server-provided balance shared with the web app. Default daily limits are Free 5, Plus 10 and Pro 40, stored in MongoDB `config/daily_limits`; reset is midnight UTC. See [onboarding and credit configuration](../docs/onboarding-credits.md).

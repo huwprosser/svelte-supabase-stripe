@@ -23,6 +23,7 @@ def test_entitlements_expire_without_removing_stripe(monkeypatch):
 
 
 def test_sync_uses_authenticated_identity(client, users, monkeypatch):
+    assert client.post("/me/onboarding", json={"date_of_birth": "2000-01-01", "discovery_source": "Search"}).status_code == 200
     monkeypatch.setattr(mobile, 'users', users)
     queried = []
     monkeypatch.setattr(mobile, 'request_customer', lambda uid: queried.append(uid) or customer())

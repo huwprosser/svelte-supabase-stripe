@@ -1,3 +1,4 @@
+import { Credits } from "@/components/Credits";
 import { useCallback } from "react";
 import { router, useFocusEffect } from "expo-router";
 import { useAuth } from "@/providers/AuthProvider";
@@ -18,6 +19,7 @@ export default function Home() {
           ? "Welcome back. Manage your account and privacy preferences in Settings."
           : "One account across web and mobile. Sign up with email and password and start on the free tier."}
       </Copy>
+      {session && <Credits />}
       <Action
         title={session ? "Open settings" : "Log in or create account"}
         onPress={() => router.navigate("/(tabs)/settings")}

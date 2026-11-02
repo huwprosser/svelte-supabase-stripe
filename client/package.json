@@ -8,7 +8,7 @@
     "build": "vite build",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "preview": "vite preview",
-    "test": "node --conditions=browser test/auth.mjs"
+    "test": "node --conditions=browser test/auth.mjs && node --conditions=browser test/onboarding-credits.mjs"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^4.0.1",

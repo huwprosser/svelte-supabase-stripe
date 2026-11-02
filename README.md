@@ -12,6 +12,8 @@ Features:
 - MongoDB user/profile storage
 - Stripe subscription checkout on web; RevenueCat in-app subscriptions on mobile
 - Shared email/password auth, account settings, and privacy controls across clients
+- Date-of-birth onboarding (14+) and discovery question
+- Shared daily credits, configured in MongoDB `config/daily_limits`
 - User-controlled activity tracking via `/telemetry/action`
 - Tiers: free, plus monthly/annual, pro monthly/annual
 - Frontend loads plans from `GET /plans`
@@ -28,6 +30,7 @@ See `docs/` for concise guides:
 
 - `mobile/README.md` — Expo setup, RevenueCat, deep links, and store testing
 - `docs/dependencies.md` — upgrade versions, audit findings, and validation
+- `docs/onboarding-credits.md` — age 14+ onboarding and database-configured daily credits
 - `docs/auth.md`
 - `docs/payments.md`
 - `docs/client.md`

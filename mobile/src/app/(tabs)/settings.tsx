@@ -1,8 +1,7 @@
+import { PrivacyActions } from "@/components/PrivacyActions";
 import { useCallback, useState } from "react";
-import { Alert, Platform, Switch, Text, View } from "react-native";
+import { Switch, Text, View } from "react-native";
 import { useFocusEffect } from "expo-router";
-import { File, Paths } from "expo-file-system";
-import * as Sharing from "expo-sharing";
 import { useAuth } from "@/providers/AuthProvider";
 import { api, track, type Profile } from "@/lib/api";
 import { AuthForm } from "@/components/AuthForm";
@@ -40,53 +39,6 @@ export default function Settings() {
       };
     }, [session, setMessage]),
   );
-  async function exportData() {
-    const data = await api<Record<string, unknown>>("/me/export");
-    if (Platform.OS === "web") {
-      const url = URL.createObjectURL(
-        new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
-      );
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "profile-data.json";
-      link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } else {
-      if (!(await Sharing.isAvailableAsync()))
-        throw new Error("File sharing is not available on this device.");
-      const file = new File(Paths.cache, "profile-data.json");
-      file.create({ overwrite: true });
-      file.write(JSON.stringify(data, null, 2));
-      try {
-        await Sharing.shareAsync(file.uri, {
-          mimeType: "application/json",
-          UTI: "public.json",
-          dialogTitle: "Export my data",
-        });
-      } finally {
-        if (file.exists) file.delete();
-      }
-    }
-    await track("data_exported", { platform: "mobile" });
-  }
-  function confirmDelete() {
-    const remove = () =>
-      void run(async () => {
-        await api("/me", "DELETE");
-        await signOut();
-        setProfile(null);
-        setMessage("Account deleted.");
-      });
-    const warning =
-      "Delete your account and stored profile? This cannot be undone. Store subscriptions continue until cancelled in Apple or Google subscription settings. Cancel an active subscription before deleting your account.";
-    if (Platform.OS === "web") {
-      if (window.confirm(warning)) remove();
-    } else
-      Alert.alert("Delete account?", warning, [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete account", style: "destructive", onPress: remove },
-      ]);
-  }
   return (
     <Page>
       <Title>Settings</Title>
@@ -102,6 +54,8 @@ export default function Settings() {
               Tier: {profile?.tier || "Loading…"} · Billing:{" "}
               {profile?.interval || "none"}
             </Copy>
+            <Copy>Date of birth: {profile?.date_of_birth}</Copy>
+            <Copy>Found us through: {profile?.discovery_source}</Copy>
             <Action
               title="Refresh account"
               disabled={busy}
@@ -142,22 +96,7 @@ export default function Settings() {
               authentication and payment processing are separate.
             </Copy>
           </Card>
-          <Card title="Privacy & GDPR">
-            <Copy>
-              Download your profile data or permanently delete your account.
-            </Copy>
-            <Action
-              title="Download my data"
-              disabled={busy}
-              onPress={() => void run(exportData)}
-            />
-            <Action
-              title="Delete account"
-              danger
-              disabled={busy}
-              onPress={confirmDelete}
-            />
-          </Card>
+          <PrivacyActions />
         </>
       )}
       {!!error && <Copy>{error}</Copy>}

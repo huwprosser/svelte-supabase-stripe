@@ -5,6 +5,8 @@
     import { api } from "../api";
     import CookieConsent from "../components/CookieConsent.svelte";
 
+    import Onboarding from "./Onboarding.svelte";
+    import Credits from "./Credits.svelte";
     import AuthForm from "./AuthForm.svelte";
 
     let { settings = false, resetPassword = false }: { settings?: boolean; resetPassword?: boolean } = $props();
@@ -23,6 +25,9 @@
         tier: Tier;
         interval: Interval | null;
         tracking_enabled: boolean;
+        onboarding_complete: boolean;
+        date_of_birth: string | null;
+        discovery_source: string | null;
     };
     type CookieChoice = "" | "yes" | "no";
 
@@ -50,7 +55,7 @@
             session = data.session;
             ready = true;
             if (session) {
-                if (settings) await loadProfile();
+                await loadProfile();
                 await trackAction("page_view", { path: location.pathname });
             }
 
@@ -64,7 +69,7 @@
                         setTimeout(() => {
                             if (session?.access_token !== newSession.access_token) return;
                             void (async () => {
-                                if (settings) await loadProfile();
+                                await loadProfile();
                                 await trackAction("auth_state_changed", { event: _event });
                             })();
                         }, 0);
@@ -115,7 +120,9 @@
 
     async function loadProfile() {
         try {
-            profile = await api.get<Profile>("/me");
+            const token = session?.access_token;
+            const data = await api.get<Profile>("/me");
+            if (session?.access_token === token) profile = data;
         } catch (e) {
             message = e instanceof Error ? e.message : String(e);
         }
@@ -240,12 +247,26 @@
         <p role="status">Loading...</p>
     {:else if resetPassword || !session}
         <AuthForm {resetPassword} signedIn={!!session} {settings} />
+    {:else if !profile}
+        <p role="status">Loading your account…</p>
+        <button onclick={loadProfile}>Retry</button>
+        <button onclick={logout}>Logout</button>
+    {:else if !profile.onboarding_complete}
+        <Onboarding onComplete={loadProfile} />
+        <section>
+            <h2>Your account</h2>
+            <button onclick={logout}>Logout</button>
+            <button onclick={exportData}>Download my data</button>
+            <button class="danger" onclick={deleteAccount}>Delete account</button>
+        </section>
     {:else if settings}
         <section>
             <h2>Account</h2>
             <p><b>Email:</b> {session.user.email}</p>
             <p><b>Tier:</b> {profile?.tier || "free"}</p>
             <p><b>Billing:</b> {profile?.interval || "none"}</p>
+            <p><b>Date of birth:</b> {profile.date_of_birth}</p>
+            <p><b>Found us through:</b> {profile.discovery_source}</p>
             <button onclick={logout}>Logout</button>
         </section>
 
@@ -299,6 +320,8 @@
             </div>
         </section>
     {/if}
+
+    {#if session && profile?.onboarding_complete && !resetPassword && !settings}<Credits />{/if}
 
     {#if message}<p class="message" role="status">{message}</p>{/if}
 </main>

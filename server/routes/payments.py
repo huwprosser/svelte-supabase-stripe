@@ -15,7 +15,7 @@ from config import (
     require_configured_stripe_webhook_secret,
 )
 from database import stripe_events, users
-from routes.user import current_user
+from routes.user import onboarded_user
 from schemas import CheckoutRequest, PublicPlan
 
 stripe.api_key = STRIPE_SECRET_KEY
@@ -31,7 +31,7 @@ def plans():
 def create_checkout_session(
     body: CheckoutRequest, authorization: str | None = Header(default=None)
 ):
-    user = current_user(authorization)
+    user = onboarded_user(authorization)
     price_id = price_id_for(body.tier, body.interval)
     if not price_id or price_id.startswith("price_replace_"):
         raise HTTPException(500, "Stripe price ID not configured in server/config.py")

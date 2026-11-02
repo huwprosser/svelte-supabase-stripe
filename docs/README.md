@@ -12,3 +12,5 @@ Concise docs for the main parts of the app:
 - [Schemas](./schemas.md) - shared Pydantic models and type aliases
 
 - [Mobile app](../mobile/README.md) - Expo tabs, shared auth/API, RevenueCat, and privacy controls
+
+- [Onboarding and credits](./onboarding-credits.md) - shared 14+ onboarding and MongoDB daily_limits configuration

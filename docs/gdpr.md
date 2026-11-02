@@ -91,3 +91,5 @@ This is a starter implementation. Before production, confirm your legal requirem
 ## Mobile
 
 The Expo Settings tab uses the same preference, export, and deletion endpoints. RevenueCat subscription state is included in profile exports when present. Account deletion also deletes the RevenueCat customer when the backend key is configured; it does not cancel store subscriptions. The native app offers the store management URL so users can cancel first. Auth tokens are stored in SecureStore and exported files are deleted from local cache when sharing completes. See `mobile/README.md` for third-party retention and setup.
+
+Onboarding date of birth, discovery answer and daily credit usage are stored inside the existing user document, included in exports and removed on deletion. Submitted under-14 birth dates and discovery answers are rejected without being stored. Privacy controls remain available before onboarding completes.

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from config import REVENUECAT_WEBHOOK_AUTHORIZATION, REVENUECAT_ALLOW_SANDBOX
 from database import users
 from revenuecat import active_entitlement, request_customer
-from routes.user import current_user, profile_for
+from routes.user import onboarded_user, profile_for
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ def sync_customer(user_id: str):
 
 @router.post("/mobile/subscription/sync")
 def sync_subscription(authorization: str | None = Header(default=None)):
-    user = current_user(authorization)
+    user = onboarded_user(authorization)
     # No user id or entitlement data is accepted from the client.
     sync_customer(user.id)
     return profile_for(user)
