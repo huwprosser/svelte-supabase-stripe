@@ -1,6 +1,6 @@
-# Bare-bones Supabase OTP + MongoDB + Stripe starter
+# Bare-bones Supabase Auth + MongoDB + Stripe starter
 
-Minimal SvelteKit TypeScript frontend and FastAPI backend.
+SvelteKit TypeScript web frontend, Expo SDK 58 tabs app, and a shared FastAPI backend.
 
 Recommended deployment path:
 - Supabase for Auth (required)
@@ -8,9 +8,12 @@ Recommended deployment path:
 - Fly.io, Railway or AWS ECS for server deployment. 
 
 Features:
-- Supabase OTP code signup/login with JWKS-based JWT verification
+- Supabase email/password signup/login and password recovery with JWKS-based JWT verification
 - MongoDB user/profile storage
-- Stripe subscription checkout
+- Stripe subscription checkout on web; RevenueCat in-app subscriptions on mobile
+- Shared email/password auth, account settings, and privacy controls across clients
+- Date-of-birth onboarding (14+) and discovery question
+- Shared daily credits, configured in MongoDB `config/daily_limits`
 - User-controlled activity tracking via `/telemetry/action`
 - Tiers: free, plus monthly/annual, pro monthly/annual
 - Frontend loads plans from `GET /plans`
@@ -25,6 +28,9 @@ Out of the box you get user management, payments, database setup, telemetry foun
 
 See `docs/` for concise guides:
 
+- `mobile/README.md` — Expo setup, RevenueCat, deep links, and store testing
+- `docs/dependencies.md` — upgrade versions, audit findings, and validation
+- `docs/onboarding-credits.md` — age 14+ onboarding and database-configured daily credits
 - `docs/auth.md`
 - `docs/payments.md`
 - `docs/client.md`

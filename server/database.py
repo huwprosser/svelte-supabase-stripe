@@ -7,3 +7,5 @@ db = mongo[MONGODB_DB]
 users = db["users"]
 stripe_events = db["stripe_events"]
 telemetry_actions = db["telemetry_actions"]
+
+config = db["config"]

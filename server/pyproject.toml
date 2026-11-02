@@ -4,18 +4,19 @@ version = "0.1.0"
 description = "Bare-bones FastAPI backend for Supabase auth, MongoDB, and Stripe subscriptions"
 requires-python = ">=3.11"
 dependencies = [
-  "fastapi",
-  "uvicorn[standard]",
-  "pymongo",
-  "python-dotenv",
-  "stripe",
-  "pyjwt[crypto]>=2.12.1",
+  "fastapi>=0.162.0",
+  "uvicorn[standard]>=0.54.0",
+  "pymongo>=4.19.0",
+  "python-dotenv>=1.2.4",
+  "stripe>=16.1.0",
+  "pyjwt[crypto]>=2.15.1",
 ]
 
 [dependency-groups]
 dev = [
-  "httpx",
-  "pytest",
+  "httpx>=0.28.1",
+  "mongomock>=4.3.0",
+  "pytest>=9.2.0",
 ]
 
 [tool.uv]

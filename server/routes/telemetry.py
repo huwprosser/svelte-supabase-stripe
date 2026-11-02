@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Header, Request
 
 from database import telemetry_actions, users
-from routes.user import current_user
+from routes.user import onboarded_user
 from schemas import TelemetryAction
 
 router = APIRouter()
@@ -31,7 +31,7 @@ def track_action(
     request: Request,
     authorization: str | None = Header(default=None),
 ):
-    user = current_user(authorization)
+    user = onboarded_user(authorization)
     doc = users.find_one({"_id": user.id}) or {}
     if not doc.get("tracking_enabled", False):
         return {"ok": True, "tracked": False}

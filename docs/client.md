@@ -8,13 +8,15 @@ It is built as a static SPA and served either by Vite in development or FastAPI 
 
 - `client/src/routes/+page.svelte` - homepage, with welcome copy after login
 - `client/src/routes/settings/+page.svelte` - account, privacy preferences, plans, and checkout
+- `client/src/routes/reset-password/+page.svelte` - password recovery destination
+- `client/src/components/AuthForm.svelte` - login, signup, confirmation feedback, and password reset
 - `client/src/components/StarterPage.svelte` - shared page UI and auth lifecycle
 - `client/src/routes/+layout.svelte` - app update prompt
 - `client/src/routes/+layout.ts` - disables SSR and enables prerendering
 - `client/src/api.ts` - typed API helper
 - `client/src/supabase.ts` - Supabase browser client
-- `client/src/CookieConsent.svelte` - cookie consent banner
-- `client/svelte.config.js` - static adapter and version polling
+- `client/src/components/CookieConsent.svelte` - cookie consent banner
+- `client/vite.config.ts` - static adapter and version polling
 
 ## Runtime behavior
 
@@ -28,7 +30,7 @@ On load, the page:
 6. Allows the user to enable/disable product activity tracking in Settings.
 7. Allows the user to download profile data or delete their account from Privacy & GDPR on `/settings`.
 
-The homepage keeps its title and layout after login, replacing the signup form with welcome copy and a Settings navigation link. Account details and controls appear only on `/settings`. Opening `/settings` while logged out shows the OTP login form; signing in reveals settings.
+The homepage keeps its title and layout after login, replacing the signup form with welcome copy and a Settings navigation link. Account details and controls appear only on `/settings`. Opening `/settings` while logged out shows the email/password login form; signing in reveals settings.
 
 ## API calls
 
@@ -62,7 +64,7 @@ Current tracked actions include page views, auth changes, and checkout starts.
 
 ## Cache/update handling
 
-SvelteKit version polling is enabled in `client/svelte.config.js`.
+SvelteKit version polling is enabled in `client/vite.config.ts`.
 
 `+layout.svelte` checks for updates and asks the user to reload when a new version is available.
 
@@ -94,3 +96,7 @@ Output goes to:
 ```txt
 client/dist
 ```
+
+## Auth regression tests
+
+Run `npm test --prefix client` for DOM-based email/password, confirmation, reset and pending/error tests with a mocked Supabase client. These do not send emails or access a live project.

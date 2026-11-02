@@ -17,6 +17,8 @@ from config import (
     MAX_REQUEST_BODY_BYTES,
     require_configured_stripe_webhook_secret,
 )
+from routes.credits import router as credits_router
+from routes.mobile import router as mobile_router
 from routes.payments import router as payments_router
 from routes.telemetry import router as telemetry_router
 from routes.user import router as user_router
@@ -70,6 +72,8 @@ async def add_security_headers(request: Request, call_next):
             "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
         )
     return response
+app.include_router(credits_router)
+app.include_router(mobile_router)
 app.include_router(user_router)
 app.include_router(payments_router)
 app.include_router(telemetry_router)

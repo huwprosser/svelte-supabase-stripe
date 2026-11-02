@@ -32,19 +32,25 @@ class FakeUsers:
         target[parts[-1]] = value
 
     def _matches(self, doc, query):
-        if "$or" in query:
-            return any(self._matches(doc, child) for child in query["$or"])
-        return all(self._get_nested(doc, key) == value for key, value in query.items())
+        for key, expected in query.items():
+            if key == "$or":
+                if not any(self._matches(doc, child) for child in expected): return False
+            elif isinstance(expected, dict) and "$exists" in expected:
+                if (self._get_nested(doc, key) is not None) != expected["$exists"]: return False
+            elif self._get_nested(doc, key) != expected:
+                return False
+        return True
 
     def update_one(self, query, update, upsert=False):
         user_id = query["_id"]
         doc = self.docs.setdefault(user_id, {"_id": user_id}) if upsert else self.docs.get(user_id)
-        if doc is None:
-            return
+        if doc is None or not self._matches(doc, query):
+            return SimpleNamespace(modified_count=0)
         if "$setOnInsert" in update and len(doc) == 1:
             doc.update(update["$setOnInsert"])
         if "$set" in update:
             doc.update(update["$set"])
+        return SimpleNamespace(modified_count=1)
 
     def update_many(self, query, update):
         for doc in self.docs.values():
@@ -84,6 +90,7 @@ def users(monkeypatch):
 def stripe_events(monkeypatch):
     fake = FakeUsers()
     monkeypatch.setattr(payments, "stripe_events", fake)
+    monkeypatch.setattr(user, "stripe_events", fake)
     return fake
 
 
@@ -91,6 +98,7 @@ def stripe_events(monkeypatch):
 def telemetry_actions(monkeypatch):
     fake = FakeUsers()
     monkeypatch.setattr(telemetry, "telemetry_actions", fake)
+    monkeypatch.setattr(user, "telemetry_actions", fake)
     return fake
 
 
@@ -120,6 +128,9 @@ def test_me_creates_default_user_and_returns_existing_profile(client, users):
         "tier": "free",
         "interval": None,
         "tracking_enabled": False,
+        "onboarding_complete": False,
+        "date_of_birth": None,
+        "discovery_source": None,
     }
 
     users.docs["user_123"].update({"tier": "pro", "interval": "year"})
@@ -129,6 +140,9 @@ def test_me_creates_default_user_and_returns_existing_profile(client, users):
         "tier": "pro",
         "interval": "year",
         "tracking_enabled": False,
+        "onboarding_complete": False,
+        "date_of_birth": None,
+        "discovery_source": None,
     }
 
 
@@ -159,6 +173,7 @@ def test_export_and_delete_user(client, users, monkeypatch):
 
 
 def test_telemetry_respects_user_tracking_preference(client, users, telemetry_actions):
+    assert client.post("/me/onboarding", json={"date_of_birth": "2000-01-01", "discovery_source": "Search"}).status_code == 200
     response = client.post(
         "/telemetry/action",
         headers={"Authorization": "Bearer token", "User-Agent": "pytest-browser"},
@@ -188,6 +203,7 @@ def test_telemetry_respects_user_tracking_preference(client, users, telemetry_ac
 
 
 def test_checkout_requires_configured_price_and_sends_expected_stripe_payload(client, monkeypatch):
+    assert client.post("/me/onboarding", json={"date_of_birth": "2000-01-01", "discovery_source": "Search"}).status_code == 200
     created = {}
 
     def fake_create(**kwargs):

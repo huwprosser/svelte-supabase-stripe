@@ -118,3 +118,7 @@ FRONTEND_URL=...
 ```
 
 Stripe price ids must be set in `server/config.py` before production.
+
+## Mobile purchases
+
+The Expo app uses RevenueCat. See [mobile setup](../mobile/README.md). `POST /mobile/subscription/sync` verifies the current authenticated user against RevenueCat; `POST /revenuecat-webhook` authenticates the configured Authorization header and refreshes affected users. The highest active tier from mobile and Stripe is returned by `/me`. Mobile access expires based on its stored expiration even if a webhook is missed.

@@ -99,3 +99,9 @@ def price_id_for(tier: str, interval: str) -> str | None:
         if plan["tier"] == tier and plan["interval"] == interval and plan["checkout"]:
             return plan["price_id"]
     return None
+
+# Server-only RevenueCat credentials. Public per-platform SDK keys live in mobile/.env.
+REVENUECAT_SECRET_KEY = os.getenv("REVENUECAT_SECRET_KEY", "")
+REVENUECAT_WEBHOOK_AUTHORIZATION = os.getenv("REVENUECAT_WEBHOOK_AUTHORIZATION", "")
+REVENUECAT_ALLOW_SANDBOX = os.getenv("REVENUECAT_ALLOW_SANDBOX", "false").lower() == "true"
+REVENUECAT_ENTITLEMENTS = {"plus": "plus", "pro": "pro"}

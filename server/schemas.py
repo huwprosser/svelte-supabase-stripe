@@ -1,7 +1,8 @@
 import json
+from datetime import date, datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 Tier = Literal["free", "plus", "pro"]
 PaidTier = Literal["plus", "pro"]
@@ -53,6 +54,9 @@ class UserProfile(BaseModel):
     tier: Tier = "free"
     interval: BillingInterval | None = None
     tracking_enabled: bool = False
+    onboarding_complete: bool = False
+    date_of_birth: date | None = None
+    discovery_source: str | None = None
 
 
 class UserPreferencesUpdate(BaseModel):
@@ -84,3 +88,36 @@ class TelemetryAction(BaseModel):
         if len(encoded.encode("utf-8")) > MAX_TELEMETRY_METADATA_BYTES:
             raise ValueError("metadata is too large")
         return self
+
+
+class OnboardingRequest(BaseModel):
+    date_of_birth: date
+    discovery_source: str = Field(min_length=1, max_length=120)
+
+    @field_validator("date_of_birth", mode="before")
+    @classmethod
+    def iso_date(cls, value):
+        import re
+        if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError("Use a date in YYYY-MM-DD format")
+        return value
+
+    @field_validator("discovery_source", mode="before")
+    @classmethod
+    def trim_source(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
+class DailyLimits(BaseModel):
+    free: int = Field(ge=0, strict=True)
+    plus: int = Field(ge=0, strict=True)
+    pro: int = Field(ge=0, strict=True)
+
+
+class CreditBalance(BaseModel):
+    day: str
+    tier: Tier
+    limit: int
+    used: int
+    remaining: int
+    resets_at: datetime

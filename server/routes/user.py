@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 from urllib.error import HTTPError, URLError
 from urllib.request import Request as UrlRequest
 from urllib.request import urlopen
@@ -9,7 +10,9 @@ from fastapi.responses import Response
 from auth import user_from_authorization_header
 from config import SUPABASE_SECRET_KEY, SUPABASE_URL
 from database import stripe_events, telemetry_actions, users
-from schemas import AuthUser, UserPreferencesUpdate, UserProfile
+from eligibility import eligible_birth_date, onboarding_complete, require_onboarding
+from revenuecat import delete_customer, effective_subscription
+from schemas import AuthUser, UserPreferencesUpdate, UserProfile, OnboardingRequest
 
 router = APIRouter()
 
@@ -31,13 +34,23 @@ def current_user(authorization: str | None) -> AuthUser:
     return user
 
 
+def onboarded_user(authorization: str | None) -> AuthUser:
+    user = current_user(authorization)
+    require_onboarding(users.find_one({"_id": user.id}) or {})
+    return user
+
+
 def profile_for(user: AuthUser) -> UserProfile:
     doc = users.find_one({"_id": user.id}) or {}
+    tier, interval = effective_subscription(doc)
     return UserProfile(
         email=user.email,
-        tier=doc.get("tier", "free"),
-        interval=doc.get("interval"),
+        tier=tier,
+        interval=interval,
         tracking_enabled=doc.get("tracking_enabled", False),
+        onboarding_complete=onboarding_complete(doc),
+        date_of_birth=doc.get("onboarding", {}).get("date_of_birth"),
+        discovery_source=doc.get("onboarding", {}).get("discovery_source"),
     )
 
 
@@ -90,16 +103,44 @@ def me(authorization: str | None = Header(default=None)):
     return profile_for(current_user(authorization))
 
 
+@router.post("/me/onboarding", response_model=UserProfile)
+def complete_onboarding(body: OnboardingRequest, authorization: str | None = Header(default=None)):
+    user = current_user(authorization)
+    if not eligible_birth_date(body.date_of_birth):
+        raise HTTPException(403, "You must be at least 14 to use this service.")
+    result = users.update_one(
+        {"_id": user.id, "onboarding.completed_at": {"$exists": False}},
+        {"$set": {"onboarding": {
+            "date_of_birth": body.date_of_birth.isoformat(),
+            "discovery_source": body.discovery_source,
+            "completed_at": datetime.now(timezone.utc),
+        }}},
+    )
+    if not result.modified_count:
+        existing = (users.find_one({"_id": user.id}) or {}).get("onboarding", {})
+        if existing.get("date_of_birth") == body.date_of_birth.isoformat() and existing.get("discovery_source") == body.discovery_source:
+            return profile_for(user)  # Safe retry after a lost successful response.
+        raise HTTPException(409, "Onboarding is already complete. Contact support to correct your date of birth.")
+    return profile_for(user)
+
+
 @router.get("/me/export")
 def export_me(authorization: str | None = Header(default=None)):
     user = current_user(authorization)
     doc = users.find_one({"_id": user.id}) or {}
+    tier, interval = effective_subscription(doc)
     export = {
         "email": doc.get("email", user.email),
-        "tier": doc.get("tier", "free"),
-        "interval": doc.get("interval"),
+        "tier": tier,
+        "interval": interval,
         "tracking_enabled": doc.get("tracking_enabled", False),
     }
+    if doc.get("onboarding"):
+        export["onboarding"] = doc["onboarding"]
+    if doc.get("daily_credits"):
+        export["daily_credits"] = doc["daily_credits"]
+    if doc.get("revenuecat"):
+        export["mobile_subscription"] = doc["revenuecat"]
     payload = json.dumps(export, default=str, indent=2)
     return Response(
         content=payload,
@@ -126,6 +167,7 @@ def update_preferences(
 @router.delete("/me")
 def delete_me(authorization: str | None = Header(default=None)):
     user = current_user(authorization)
+    delete_customer(user.id)
     delete_supabase_user(user.id)
     delete_user_related_data(user.id)
     users.delete_one({"_id": user.id})

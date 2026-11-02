@@ -2,7 +2,7 @@
 
 Concise docs for the main parts of the app:
 
-- [Auth](./auth.md) - Supabase OTP, JWT verification, user creation
+- [Auth](./auth.md) - Supabase email/password auth, JWT verification, user creation
 - [Payments](./payments.md) - Stripe Checkout, webhooks, event storage
 - [Client](./client.md) - SvelteKit frontend structure and runtime flow
 - [Server](./server.md) - FastAPI backend structure and operations
@@ -10,3 +10,7 @@ Concise docs for the main parts of the app:
 - [Telemetry](./telemetry.md) - user activity tracking and privacy preference
 - [GDPR](./gdpr.md) - account deletion, data export, and privacy controls
 - [Schemas](./schemas.md) - shared Pydantic models and type aliases
+
+- [Mobile app](../mobile/README.md) - Expo tabs, shared auth/API, RevenueCat, and privacy controls
+
+- [Onboarding and credits](./onboarding-credits.md) - shared 14+ onboarding and MongoDB daily_limits configuration

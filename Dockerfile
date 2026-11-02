@@ -1,9 +1,9 @@
 # Builds the Svelte/Vite client, then runs the FastAPI server with uv.
 
-FROM node:22-alpine AS client-build
+FROM node:26-alpine AS client-build
 WORKDIR /app/client
 COPY client/package*.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 COPY client/ ./
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_PUBLISHABLE_KEY

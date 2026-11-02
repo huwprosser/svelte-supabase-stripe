@@ -10,3 +10,9 @@ server/static
 .pi
 .codex
 .DS_Store
+.expo/
+.env.*
+!.env.example
+!mobile/.env.example
+mobile/ios/
+mobile/android/
